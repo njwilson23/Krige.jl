@@ -4,6 +4,8 @@
 # calculate an experimental variogram
 #
 
+module Vario
+
 function dist(a, b)
     # cartesian distance between points a,b
     return sqrt( sum((a - b).^2) )
@@ -59,3 +61,4 @@ function expvario(X, Z, interval::Number, maxdist::Number)
     return cat(2, lags, G)
 end
 
+end

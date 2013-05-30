@@ -1,4 +1,4 @@
-Krig.jl
+Krige.jl
 =======
 
 This is **experimental code**. I thought it was about time I learned something about

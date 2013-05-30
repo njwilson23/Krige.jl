@@ -1,5 +1,5 @@
 
-include("vario.jl")
+include("src/vario.jl")
 
 using Base.Test
 

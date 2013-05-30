@@ -13,12 +13,10 @@
 # evaluate the model variogram at lags *h*
 #
 module Model
-
 using Optim
-
 export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
        NuggetVariogram, CompositeVariogram, Variogram_like,
-       fit, evaluate
+       fit!, evaluate
 
 # type declarations
 
@@ -86,16 +84,16 @@ function taketwo(A)
     return res
 end
 
-tune!(m::ModelVariogram, p) = typeof(m)(p[1], p[2])
-tune!(m::CompositeVariogram, p) =
+tune(m::ModelVariogram, p) = typeof(m)(p[1], p[2])
+tune(m::CompositeVariogram, p) =
     CompositeVariogram([p_(p_[1][1],p_[2]) for p_=zip(m.vs, taketwo(p))])
 
 function fit!(M::Variogram_like, p, g, h)
     # Fit variogram model *M* with parameters *p* to an experimental variogram
     # *g* at lags *h*.
-    f_obj = (p) -> sum((evaluate(tune!(M, p), h) - g).^2)
+    f_obj = (p) -> sum((evaluate(tune(M, p), h) - g).^2)
     res = Optim.optimize(f_obj, p)#, method=:nelder_mead)
-    tune!(M, res.minimum)
+    return tune(M, res.minimum)
 end
 
 end

@@ -16,6 +16,10 @@ module Model
 
 using Optim
 
+export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
+       NuggetVariogram, CompositeVariogram, Variogram_like,
+       fit, evaluate
+
 # type declarations
 
 abstract ModelVariogram

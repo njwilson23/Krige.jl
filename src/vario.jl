@@ -6,6 +6,8 @@
 
 module Vario
 
+export compute_distances, zdiffmat, expvario
+
 function dist(a, b)
     # cartesian distance between points a,b
     return sqrt( sum((a - b).^2) )

@@ -1,22 +1,15 @@
 #
 # model.jl
 #
-# Define variogram model prototypes. The type hierarchy looks like:
-# - ModelVariogram
-#  - GaussianVariogram
-#  - SphericalVeriogram
-#  - NuggetVariogram
+# Define variogram model prototypes.
 #
-# Functions:
-#
-# varat(M::ModelVariogram, h:Vector)
-# evaluate the model variogram at lags *h*
-#
+
 module Model
 using Optim
 export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
        NuggetVariogram, CompositeVariogram, Variogram_like,
        fit!, evaluate
+
 
 # type declarations
 
@@ -24,27 +17,27 @@ abstract ModelVariogram
 
 immutable type GaussianVariogram <: ModelVariogram
     coef::Real
-    sill::Real
+    rng::Real
 end
 
 immutable type SphericalVariogram <: ModelVariogram
     coef::Real
-    sill::Real
+    rng::Real
 end
 
 immutable type LogVariogram <: ModelVariogram
     coef::Real
-    sill::Real
+    rng::Real
 end
 
 immutable type LinearVariogram <: ModelVariogram
     coef::Real
-    sill::Real
+    rng::Real
 end
 
 immutable type NuggetVariogram <: ModelVariogram
     coef::Real
-    sill::Real      # Should be zero?
+    rng::Real      # Should be zero?
 end
 
 immutable type CompositeVariogram
@@ -53,10 +46,11 @@ end
 
 Variogram_like = Union(ModelVariogram, CompositeVariogram)
 
+
 # method definitions
 
-*(coef::Real, m::ModelVariogram) = typeof(m)(m.coef * coef, m.sill)
-*(m::ModelVariogram, coef::Real) = typeof(m)(m.coef * coef, m.sill)
+*(coef::Real, m::ModelVariogram) = typeof(m)(m.coef * coef, m.rng)
+*(m::ModelVariogram, coef::Real) = typeof(m)(m.coef * coef, m.rng)
 *(coef::Real, c::CompositeVariogram) = CompositeVariogram([coef*v for v=c.vs])
 *(c::CompositeVariogram, coef::Real) = CompositeVariogram([coef*v for v=c.vs])
 
@@ -65,14 +59,14 @@ Variogram_like = Union(ModelVariogram, CompositeVariogram)
 +(m::CompositeVariogram, n::ModelVariogram) = push(n.vs, m)
 +(m::CompositeVariogram, n::CompositeVariogram) = vcat(m, n)
 
-evaluate(m::GaussianVariogram, h) = m.coef * (1.0 - exp( -(h ./ m.sill).^2 ))
+evaluate(m::GaussianVariogram, h) = m.coef * (1.0 - exp( -(h ./ m.rng).^2 ))
 evaluate(m::SphericalVariogram, h) = m.coef * 
-                                    [h_<m.sill ?
-                                     1.5 * h_/m.sill - 0.5 * (h_/m.sill)^3 :
+                                    [h_<m.rng ?
+                                     1.5 * h_/m.rng - 0.5 * (h_/m.rng)^3 :
                                      1.0 for h_=h]
-evaluate(m::LogVariogram, h) = m.coef * [h_ == 0.0 ? 0.0 : log(h_+m.sill) for h_=h]
-evaluate(m::LinearVariogram, h) = m.coef * [h_<m.sill ? h_/m.sill : 1.0 for h_=h]
-evaluate(m::NuggetVariogram, h) = m.coef * (h .> m.sill)
+evaluate(m::LogVariogram, h) = m.coef * [h_ == 0.0 ? 0.0 : log(h_+m.rng) for h_=h]
+evaluate(m::LinearVariogram, h) = m.coef * [h_<m.rng ? h_/m.rng : 1.0 for h_=h]
+evaluate(m::NuggetVariogram, h) = m.coef * (h .> m.rng)
 evaluate(c::CompositeVariogram, h) = sum([evaluate(v,h) for v=c.vs])
 
 function taketwo(A)

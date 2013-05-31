@@ -5,13 +5,9 @@
 #
 
 module Vario
-
 export compute_distances, zdiffmat, expvario
-
-function dist(a, b)
-    # cartesian distance between points a,b
-    return sqrt( sum((a - b).^2) )
-end
+using Util
+#include("util.jl")
 
 function compute_distances(A)
     # calculate a compact distance matrix for vectors in *A*
@@ -20,7 +16,7 @@ function compute_distances(A)
     cnt = 1
     for i = 1:n
         for j = i+1:n
-            distmat[cnt] = dist(A[i,:], A[j,:])
+            distmat[cnt] = Util.dist(A[i,:], A[j,:])
             cnt = cnt + 1
         end
     end

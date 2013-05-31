@@ -5,10 +5,9 @@
 #
 
 module Model
-using Optim
 export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
-       NuggetVariogram, CompositeVariogram, Variogram_like,
-       fit!, evaluate
+       NuggetVariogram, CompositeVariogram, Variogram_like, fit!, evaluate
+using Optim
 
 
 # type declarations
@@ -16,27 +15,27 @@ export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
 abstract ModelVariogram
 
 immutable type GaussianVariogram <: ModelVariogram
-    coef::Real
+    sill::Real
     rng::Real
 end
 
 immutable type SphericalVariogram <: ModelVariogram
-    coef::Real
+    sill::Real
     rng::Real
 end
 
 immutable type LogVariogram <: ModelVariogram
-    coef::Real
+    sill::Real
     rng::Real
 end
 
 immutable type LinearVariogram <: ModelVariogram
-    coef::Real
+    sill::Real
     rng::Real
 end
 
 immutable type NuggetVariogram <: ModelVariogram
-    coef::Real
+    sill::Real
     rng::Real      # Should be zero?
 end
 
@@ -49,24 +48,37 @@ Variogram_like = Union(ModelVariogram, CompositeVariogram)
 
 # method definitions
 
-*(coef::Real, m::ModelVariogram) = typeof(m)(m.coef * coef, m.rng)
-*(m::ModelVariogram, coef::Real) = typeof(m)(m.coef * coef, m.rng)
-*(coef::Real, c::CompositeVariogram) = CompositeVariogram([coef*v for v=c.vs])
-*(c::CompositeVariogram, coef::Real) = CompositeVariogram([coef*v for v=c.vs])
+*(sill::Real, m::ModelVariogram) = typeof(m)(m.sill * sill, m.rng)
+*(m::ModelVariogram, sill::Real) = typeof(m)(m.sill * sill, m.rng)
+*(sill::Real, c::CompositeVariogram) = CompositeVariogram([sill*v for v=c.vs])
+*(c::CompositeVariogram, sill::Real) = CompositeVariogram([sill*v for v=c.vs])
 
 +(m::ModelVariogram, n::ModelVariogram) = CompositeVariogram([m, n])
 +(m::ModelVariogram, n::CompositeVariogram) = push(n.vs, m)
 +(m::CompositeVariogram, n::ModelVariogram) = push(n.vs, m)
 +(m::CompositeVariogram, n::CompositeVariogram) = vcat(m, n)
 
-evaluate(m::GaussianVariogram, h) = m.coef * (1.0 - exp( -(h ./ m.rng).^2 ))
-evaluate(m::SphericalVariogram, h) = m.coef * 
-                                    [h_<m.rng ?
-                                     1.5 * h_/m.rng - 0.5 * (h_/m.rng)^3 :
-                                     1.0 for h_=h]
-evaluate(m::LogVariogram, h) = m.coef * [h_ == 0.0 ? 0.0 : log(h_+m.rng) for h_=h]
-evaluate(m::LinearVariogram, h) = m.coef * [h_<m.rng ? h_/m.rng : 1.0 for h_=h]
-evaluate(m::NuggetVariogram, h) = m.coef * (h .> m.rng)
+
+evaluate(m::GaussianVariogram, h::Array) = m.sill * (1.0 - exp( -(h ./ m.rng).^2 ))
+evaluate(m::GaussianVariogram, h::Number) = m.sill * (1.0 - exp( -(h ./ m.rng).^2 ))
+
+evaluate(m::SphericalVariogram, h::Array) = 
+    m.sill * [h_<m.rng ? 1.5 * h_/m.rng - 0.5 * (h_/m.rng)^3 : 1.0 for h_=h]
+evaluate(m::SphericalVariogram, h::Number) =
+    m.sill * (h<m.rng ? 1.5 * h/m.rng - 0.5 * (h/m.rng)^3 : 1.0)
+
+evaluate(m::LogVariogram, h::Array) =
+    m.sill * [h_ == 0.0 ? 0.0 : log(h_+m.rng) for h_=h]
+evaluate(m::LogVariogram, h::Number) =
+    m.sill * (h == 0.0 ? 0.0 : log(h+m.rng))
+
+evaluate(m::LinearVariogram, h::Array) =
+    m.sill * [h_<m.rng ? h_/m.rng : 1.0 for h_=h]
+evaluate(m::LinearVariogram, h::Number) =
+    m.sill * (h<m.rng ? h/m.rng : 1.0)
+
+evaluate(m::NuggetVariogram, h) = m.sill * (h .> m.rng)
+
 evaluate(c::CompositeVariogram, h) = sum([evaluate(v,h) for v=c.vs])
 
 function taketwo(A)
@@ -86,7 +98,7 @@ function fit!(M::Variogram_like, p, g, h)
     # Fit variogram model *M* with parameters *p* to an experimental variogram
     # *g* at lags *h*.
     f_obj = (p) -> sum((evaluate(tune(M, p), h) - g).^2)
-    res = Optim.optimize(f_obj, p)#, method=:nelder_mead)
+    res = Optim.optimize(f_obj, p, method=:nelder_mead)
     return tune(M, res.minimum)
 end
 

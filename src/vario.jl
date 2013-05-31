@@ -4,9 +4,9 @@
 # calculate an experimental variogram
 #
 
-module Vario
-export compute_distances, zdiffmat, expvario
-using Util
+#module Vario
+#export compute_distances, zdiffmat, expvario
+#using Util
 #include("util.jl")
 
 function compute_distances(A)
@@ -16,7 +16,7 @@ function compute_distances(A)
     cnt = 1
     for i = 1:n
         for j = i+1:n
-            distmat[cnt] = Util.dist(A[i,:], A[j,:])
+            distmat[cnt] = dist(A[i,:], A[j,:])
             cnt = cnt + 1
         end
     end
@@ -59,4 +59,4 @@ function expvario(X, Z, interval::Number, maxdist::Number)
     return cat(2, lags, G)
 end
 
-end
+#end

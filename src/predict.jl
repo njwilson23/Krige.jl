@@ -4,12 +4,12 @@
 # kriging prediction of geographical data
 #
 
-module Predict
-export buildcovmet, ordinary_krig
-#include("util.jl")
-#include("model.jl")
-using Util
-using Model
+#module Predict
+#export buildcovmet, ordinary_krig
+##include("util.jl")
+##include("model.jl")
+#using Util
+#using Model
 
 
 function buildcovmat(M, X::Array{Float64,2})
@@ -19,7 +19,7 @@ function buildcovmat(M, X::Array{Float64,2})
 
     for i = 1:n
         for j = i:n
-            K[i,j] = Model.evaluate(M, Util.dist(X[i,:], X[j,:]))
+            K[i,j] = evaluate(M, dist(X[i,:], X[j,:]))
         end
     end
 
@@ -34,7 +34,7 @@ function buildcovmat(M, X::Array{Float64,1})
 
     for i = 1:n
         for j = i:n
-            K[i,j] = Model.evaluate(M, Util.dist(X[i], X[j]))
+            K[i,j] = evaluate(M, dist(X[i], X[j]))
         end
     end
 
@@ -73,7 +73,7 @@ function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
         isel = zeros(Int16, n)
         cnt = 1
         for ismp = 1:length(Xs)  # fix this - needs to handle 2d arrays
-            if Util.dist(Xs[ismp,:], xp) < sampleradius
+            if dist(Xs[ismp,:], xp) < sampleradius
                 isel[cnt] = ismp
                 cnt = cnt +1
             end
@@ -81,7 +81,7 @@ function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
         isel = isel[1:cnt-1]
 
         # build kriging system from the selection
-        Km = Util.augment_lm(K[isel,isel])
+        Km = augment_lm(K[isel,isel])
         k = [evaluate(M, dist(Xs[i_,:], xp)) for i_=isel]
         append!(k, [1.0])
 
@@ -100,5 +100,5 @@ end
 
 
 
-end
+#end
 

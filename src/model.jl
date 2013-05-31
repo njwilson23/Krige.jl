@@ -4,10 +4,10 @@
 # Define variogram model prototypes.
 #
 
-module Model
-export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
-       NuggetVariogram, CompositeVariogram, Variogram_like, fit!, evaluate
-using Optim
+#module Model
+#export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
+#       NuggetVariogram, CompositeVariogram, Variogram_like, fit!, evaluate
+#using Optim
 
 
 # type declarations
@@ -102,4 +102,4 @@ function fit!(M::Variogram_like, p, g, h)
     return tune(M, res.minimum)
 end
 
-end
+#end

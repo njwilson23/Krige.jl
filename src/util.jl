@@ -4,9 +4,6 @@
 # utility functions for kriging
 #
 
-module Util
-export dist, augment_lm
-
 function dist(a::Union(Number, Array), b::Union(Number, Array))
     # cartesian distance between points a,b
     return sqrt( sum((a - b).^2) )
@@ -18,8 +15,5 @@ function augment_lm(A::Array)
     A = hcat(A, ones(eltype(A), size(A,1), 1))
     A[end, end] = 0.0
     return A
-end
-
-
 end
 

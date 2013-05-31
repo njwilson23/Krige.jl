@@ -1,16 +1,8 @@
 #
 # model.jl
 #
-# Define variogram model prototypes.
+# define variogram model prototypes
 #
-
-#module Model
-#export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
-#       NuggetVariogram, CompositeVariogram, Variogram_like, fit!, evaluate
-#using Optim
-
-
-# type declarations
 
 abstract ModelVariogram
 
@@ -45,8 +37,6 @@ end
 
 Variogram_like = Union(ModelVariogram, CompositeVariogram)
 
-
-# method definitions
 
 *(sill::Real, m::ModelVariogram) = typeof(m)(m.sill * sill, m.rng)
 *(m::ModelVariogram, sill::Real) = typeof(m)(m.sill * sill, m.rng)
@@ -102,4 +92,3 @@ function fit!(M::Variogram_like, p, g, h)
     return tune(M, res.minimum)
 end
 
-#end

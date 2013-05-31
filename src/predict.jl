@@ -4,14 +4,6 @@
 # kriging prediction of geographical data
 #
 
-#module Predict
-#export buildcovmet, ordinary_krig
-##include("util.jl")
-##include("model.jl")
-#using Util
-#using Model
-
-
 function buildcovmat(M, X::Array{Float64,2})
     # assemble matrix of modelled variance
     n = length(X, 1)
@@ -96,9 +88,4 @@ function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
 
     return Zp
 end
-
-
-
-
-#end
 

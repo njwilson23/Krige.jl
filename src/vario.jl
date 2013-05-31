@@ -4,11 +4,6 @@
 # calculate an experimental variogram
 #
 
-#module Vario
-#export compute_distances, zdiffmat, expvario
-#using Util
-#include("util.jl")
-
 function compute_distances(A)
     # calculate a compact distance matrix for vectors in *A*
     n = size(A,1)
@@ -59,4 +54,3 @@ function expvario(X, Z, interval::Number, maxdist::Number)
     return cat(2, lags, G)
 end
 
-#end

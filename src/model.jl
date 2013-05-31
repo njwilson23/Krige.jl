@@ -71,6 +71,9 @@ evaluate(m::NuggetVariogram, h) = m.sill * (h .> m.rng)
 
 evaluate(c::CompositeVariogram, h) = sum([evaluate(v,h) for v=c.vs])
 
+getp(m::ModelVariogram) = [m.sill, m.rng]
+getp(c::CompositeVariogram) = reduce((a,b) -> vcat(a,b), [getp(a) for a=c.vs])
+
 function taketwo(A)
     assert(length(A) % 2 == 0)
     res = zeros(Any, int(length(A)/2))
@@ -84,11 +87,11 @@ tune(m::ModelVariogram, p) = typeof(m)(p[1], p[2])
 tune(m::CompositeVariogram, p) =
     CompositeVariogram([p_(p_[1][1],p_[2]) for p_=zip(m.vs, taketwo(p))])
 
-function fit!(M::Variogram_like, p, g, h)
+function fit!(M::Variogram_like, g, h)
     # Fit variogram model *M* with parameters *p* to an experimental variogram
     # *g* at lags *h*.
     f_obj = (p) -> sum((evaluate(tune(M, p), h) - g).^2)
-    res = Optim.optimize(f_obj, p, method=:nelder_mead)
+    res = Optim.optimize(f_obj, getp(M), method=:nelder_mead)
     return tune(M, res.minimum)
 end
 

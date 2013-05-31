@@ -57,7 +57,7 @@ function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
     K = buildcovmat(M, Zs)
 
     # iterate through all prediction points
-    for i = 1:length(n)
+    for i = 1:n
 
         xp = Xp[i,:]
 
@@ -80,11 +80,8 @@ function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
         # make prediction
         W = inv(Km) * k
         pred = W[1:end-1]' * Zs[isel]
-        print(pred[1], ' ')
         Zp[i] = pred[1]
     end
-
-    println()
 
     return Zp
 end

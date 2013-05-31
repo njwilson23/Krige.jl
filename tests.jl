@@ -26,10 +26,20 @@ end
 let h=[0:10:100]
     g = 3.0 * (1.0 - exp( -(h / 50.0).^2))
     m = Krige.GaussianVariogram(1.0, 20.0)
-    m_fitted = Krige.fit!(m, [1.0, 20.0], g, h)
+    m_fitted = Krige.fit!(m, g, h)
     @test_approx_eq_eps g Krige.evaluate(m_fitted, h) 1e-3
 end
 
+let a = Krige.SphericalVariogram(1.,2.),
+    b = Krige.SphericalVariogram(3.,4.),
+    c = Krige.NuggetVariogram(0.5,0.0)
+
+    @test Krige.getp(a) == [1., 2.]
+    @test Krige.getp(b) == [3., 4.]
+
+    V = CompositeVariogram([a,b,c])
+    @test Krige.getp(V) == [1., 2., 3., 4., 0.5, 0.0]
+end
 
 ######### Prediction ##########
 let X=[0.0:10.0]
@@ -42,7 +52,7 @@ let X=[0.0:10.0]
 
     g = Krige.expvario(Xs, Zs, 1.0, 10.0)
     m = Krige.GaussianVariogram(1.0, 5.0)
-    m = Krige.fit!(m, [1.0, 5.0], g[:,2], g[:,1])
+    m = Krige.fit!(m, g[:,2], g[:,1])
     Zp = Krige.ordinary_krig(m, Xs, Zs, X)
     println(Zp)
 

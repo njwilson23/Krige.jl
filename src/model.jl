@@ -74,6 +74,9 @@ evaluate(c::CompositeVariogram, h) = sum([evaluate(v,h) for v=c.vs])
 getp(m::ModelVariogram) = [m.sill, m.rng]
 getp(c::CompositeVariogram) = reduce((a,b) -> vcat(a,b), [getp(a) for a=c.vs])
 
+sill(m::ModelVariogram) = m.sill
+sill(c::CompositeVariogram) = sum([v.sill for v=c.vs])
+
 function taketwo(A)
     assert(length(A) % 2 == 0)
     res = zeros(Any, int(length(A)/2))

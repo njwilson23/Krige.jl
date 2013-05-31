@@ -23,20 +23,16 @@ function buildcovmat(M, X::Array{Float64,1})
     # assemble matrix of modelled variance
     n = length(X)
     K = zeros(Float64, n, n)
+    maxvar = sill(M)
 
     for i = 1:n
         for j = i:n
-            K[i,j] = evaluate(M, dist(X[i], X[j]))
+            K[i,j] = maxvar - evaluate(M, dist(X[i], X[j]))
         end
     end
 
     K = K + triu(K,1)'
     return K
-end
-
-function idx_near(X::Array, pt, radius)
-    n = length(X)
-
 end
 
 function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)

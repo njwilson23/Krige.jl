@@ -4,8 +4,8 @@
 # calculate an experimental variogram
 #
 
+# calculate a compact distance matrix for vectors in *A*
 function compute_distances(A)
-    # calculate a compact distance matrix for vectors in *A*
     n = size(A,1)
     distmat = zeros(sum(1:n-1))
     cnt = 1
@@ -18,8 +18,8 @@ function compute_distances(A)
     return distmat
 end
 
+# return a compact matrix of z-differences
 function zdiffmat(Z)
-    # return a compact matrix of z-differences
     n = length(Z)
     zmat = zeros(sum(1:n-1))
     cnt = 1
@@ -32,23 +32,19 @@ function zdiffmat(Z)
     return zmat
 end
 
-function expvario(X, Z, interval::Number, maxdist::Number)
-    # calculate an experimental variogram for scalar data *Z* at locations *X*
+# calculate an experimental variogram for scalar data *Z* at locations *X*
+function est_variogram(X, Z, interval::Number, maxdist::Number)
 
     distmat = compute_distances(X)
     zmat = zdiffmat(Z)
     lags = interval:interval:maxdist
 
     G = zeros(length(lags))
-
     for i=1:length(lags)
-
         minh = lags[i] - interval
         maxh = lags[i]
         zbin = zmat[minh .< distmat .<= maxh]
-        var_ = (a) -> length(a) > 0 ? var(a) : nan(1.0)
-        G[i] = 0.5 * var_(zbin)
-
+        G[i] = semivar(zbin)
     end
 
     return cat(2, lags, G)

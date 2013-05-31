@@ -4,14 +4,15 @@
 # kriging prediction of geographical data
 #
 
-function buildcovmat(M, X::Array{Float64,2})
+function buildcovmat(M::Variogram_like, X::Array{Float64,2})
     # assemble matrix of modelled variance
     n = length(X, 1)
     K = zeros(Float64, n, n)
+    maxvar = sill(M)
 
     for i = 1:n
         for j = i:n
-            K[i,j] = evaluate(M, dist(X[i,:], X[j,:]))
+            K[i,j] = maxvar - evaluate(M, dist(X[i,:], X[j,:]))
         end
     end
 
@@ -19,7 +20,7 @@ function buildcovmat(M, X::Array{Float64,2})
     return K
 end
 
-function buildcovmat(M, X::Array{Float64,1})
+function buildcovmat(M::Variogram_like, X::Array{Float64,1})
     # assemble matrix of modelled variance
     n = length(X)
     K = zeros(Float64, n, n)
@@ -35,10 +36,9 @@ function buildcovmat(M, X::Array{Float64,1})
     return K
 end
 
+# use model variogram *M* to predict values (Zp) at prediction locations
+# *Xp* given samples (*Xs*, *Zs*)
 function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
-    # use model variogram *M* to predict values (Zp) at prediction locations
-    # *Xp* given samples (*Xs*, *Zs*)
-
     if ndims(Xp) == 1
         n = length(Xp)
     elseif ndims(Xp) == 2
@@ -60,7 +60,7 @@ function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
         # select a subset of the samples
         isel = zeros(Int16, n)
         cnt = 1
-        for ismp = 1:length(Xs)  # fix this - needs to handle 2d arrays
+        for ismp = 1:size(Xs)[1]
             if dist(Xs[ismp,:], xp) < sampleradius
                 isel[cnt] = ismp
                 cnt = cnt +1
@@ -70,8 +70,15 @@ function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
 
         # build kriging system from the selection
         Km = augment_lm(K[isel,isel])
-        k = [evaluate(M, dist(Xs[i_,:], xp)) for i_=isel]
+        maxvar = sill(M)
+        k = [maxvar-evaluate(M, dist(Xs[i_,:], xp)) for i_=isel]
         append!(k, [1.0])
+
+        # calculate condition number
+        kappa = norm(Km) * norm(inv(Km))
+        if kappa > 1e3
+            println("Warning - high condition number: ", kappa)
+        end
 
         # make prediction
         W = inv(Km) * k

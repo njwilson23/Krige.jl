@@ -25,14 +25,14 @@ end
 ######### Variogram modelling ##########
 let h=[0:10:100]
     g = 3.0 * (1.0 - exp( -(h / 50.0).^2))
-    m = Krige.GaussianVariogram(1.0, 20.0)
-    m_fitted = Krige.fit!(m, g, h)
-    @test_approx_eq_eps g Krige.evaluate(m_fitted, h) 1e-3
+    m = GaussianVariogram(1.0, 20.0)
+    m_fitted = fit!(m, g, h)
+    @test_approx_eq_eps g evaluate(m_fitted, h) 1e-3
 end
 
-let a = Krige.SphericalVariogram(1.,2.),
-    b = Krige.SphericalVariogram(3.,4.),
-    c = Krige.NuggetVariogram(0.5,0.0)
+let a = SphericalVariogram(1.,2.),
+    b = SphericalVariogram(3.,4.),
+    c = NuggetVariogram(0.5,0.0)
 
     @test Krige.getp(a) == [1., 2.]
     @test Krige.getp(b) == [3., 4.]
@@ -44,17 +44,24 @@ end
 ######### Prediction ##########
 let X=[0.0:10.0]
 
-    Z=cos(X ./ pi)
+    # create fitting data
+    mdata = GaussianVariogram(2.0, 6.0)
+    Z = evaluate(mdata, X)
 
+    # extract a subset for training
     ii = [1,3,4,7,8,10]
     Xs = X[ii]
     Zs = Z[ii]
 
-    g = Krige.expvario(Xs, Zs, 1.0, 10.0)
-    m = Krige.GaussianVariogram(1.0, 5.0)
-    m = Krige.fit!(m, g[:,2], g[:,1])
-    Zp = Krige.ordinary_krig(m, Xs, Zs, X)
-    println(Zp)
+    g = est_variogram(Xs, Zs, 1.0, 9.0)
+    m = GaussianVariogram(1.0, 5.0)
+    m = Krige.fit!(m, g[:,2], g[:,1]) + NuggetVariogram(0.01, 0.0)
+    println(Krige.getp(m))
+
+    # make an estimate
+    Zp = ordinary_krig(m, Xs, Zs, X)
+    println("Residuals:")
+    println(Zp - Z)
 
 end
 

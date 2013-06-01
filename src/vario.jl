@@ -11,7 +11,7 @@ function compute_distances(A)
     cnt = 1
     for i = 1:n
         for j = i+1:n
-            distmat[cnt] = dist(A[i,:], A[j,:])
+            distmat[cnt] = norm(A[i,:] - A[j,:])
             cnt = cnt + 1
         end
     end

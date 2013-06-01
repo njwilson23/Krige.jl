@@ -4,31 +4,16 @@
 # kriging prediction of geographical data
 #
 
-function buildcovmat(M::Variogram_like, X::Array{Float64,2})
+function buildcovmat(M::Variogram_like, X::Array{Float64})
     # assemble matrix of modelled variance
-    n = length(X, 1)
+    n = size(X)[1]
     K = zeros(Float64, n, n)
     maxvar = sill(M)
 
     for i = 1:n
         for j = i:n
-            K[i,j] = maxvar - evaluate(M, dist(X[i,:], X[j,:]))
-        end
-    end
-
-    K = K + triu(K,1)'
-    return K
-end
-
-function buildcovmat(M::Variogram_like, X::Array{Float64,1})
-    # assemble matrix of modelled variance
-    n = length(X)
-    K = zeros(Float64, n, n)
-    maxvar = sill(M)
-
-    for i = 1:n
-        for j = i:n
-            K[i,j] = maxvar - evaluate(M, dist(X[i], X[j]))
+            #K[i,j] = maxvar - evaluate(M, dist(X[i,:], X[j,:]))
+            K[i,j] = - evaluate(M, dist(X[i,:], X[j,:]))
         end
     end
 
@@ -38,7 +23,7 @@ end
 
 # use model variogram *M* to predict values (Zp) at prediction locations
 # *Xp* given samples (*Xs*, *Zs*)
-function ordinary_krig(M, Xs, Zs, Xp, sampleradius=100.0)
+function ordinary_krig(M::Variogram_like, Xs::Array, Zs::Array, Xp::Array, sampleradius=100.0)
     if ndims(Xp) == 1
         n = length(Xp)
     elseif ndims(Xp) == 2

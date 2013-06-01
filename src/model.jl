@@ -11,6 +11,11 @@ immutable type GaussianVariogram <: ModelVariogram
     rng::Real
 end
 
+immutable type ExponentialVariogram <: ModelVariogram
+    sill::Real
+    rng::Real
+end
+
 immutable type SphericalVariogram <: ModelVariogram
     sill::Real
     rng::Real
@@ -52,6 +57,9 @@ Variogram_like = Union(ModelVariogram, CompositeVariogram)
 evaluate(m::GaussianVariogram, h::Array) = m.sill * (1.0 - exp( -(h ./ m.rng).^2 ))
 evaluate(m::GaussianVariogram, h::Number) = m.sill * (1.0 - exp( -(h ./ m.rng).^2 ))
 
+evaluate(m::ExponentialVariogram, h::Array) = m.sill * (1.0 - exp( -(h ./ m.rng) ))
+evaluate(m::ExponentialVariogram, h::Number) = m.sill * (1.0 - exp( -(h ./ m.rng) ))
+
 evaluate(m::SphericalVariogram, h::Array) = 
     m.sill * [h_<m.rng ? 1.5 * h_/m.rng - 0.5 * (h_/m.rng)^3 : 1.0 for h_=h]
 evaluate(m::SphericalVariogram, h::Number) =
@@ -90,9 +98,9 @@ tune(m::ModelVariogram, p) = typeof(m)(p[1], p[2])
 tune(m::CompositeVariogram, p) =
     CompositeVariogram([p_(p_[1][1],p_[2]) for p_=zip(m.vs, taketwo(p))])
 
+# Fit variogram model *M* with parameters *p* to an experimental variogram
+# *g* at lags *h*.
 function fit!(M::Variogram_like, g, h)
-    # Fit variogram model *M* with parameters *p* to an experimental variogram
-    # *g* at lags *h*.
     f_obj = (p) -> sum((evaluate(tune(M, p), h) - g).^2)
     res = Optim.optimize(f_obj, getp(M), method=:nelder_mead)
     return tune(M, res.minimum)

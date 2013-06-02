@@ -10,9 +10,9 @@
 module Krige
 
     export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
-           ExponentialVariogram, NuggetVariogram,
-           CompositeVariogram,
+           ExponentialVariogram, NuggetVariogram, CompositeVariogram,
            Variogram_like,
+           ExperimentalVariogram,
            est_variogram,
            evaluate,
            fit!,

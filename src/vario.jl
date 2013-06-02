@@ -4,6 +4,11 @@
 # calculate an experimental variogram
 #
 
+immutable type ExperimentalVariogram
+    lags::Array
+    g::Array
+end
+
 # calculate a compact distance matrix for vectors in *A*
 function compute_distances(A)
     n = size(A,1)
@@ -46,7 +51,6 @@ function est_variogram(X, Z, interval::Number, maxdist::Number)
         zbin = zmat[minh .< distmat .<= maxh]
         G[i] = semivar(zbin)
     end
-
-    return cat(2, lags, G)
+    return ExperimentalVariogram([lags], G)
 end
 

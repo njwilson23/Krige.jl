@@ -100,8 +100,8 @@ tune(m::CompositeVariogram, p) =
 
 # Fit variogram model *M* with parameters *p* to an experimental variogram
 # *g* at lags *h*.
-function fit!(M::Variogram_like, g, h)
-    f_obj = (p) -> sum((evaluate(tune(M, p), h) - g).^2)
+function fit!(M::Variogram_like, V::ExperimentalVariogram)
+    f_obj = (p) -> sum((evaluate(tune(M, p), V.lags) - V.g).^2)
     res = Optim.optimize(f_obj, getp(M), method=:nelder_mead)
     return tune(M, res.minimum)
 end

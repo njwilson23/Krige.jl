@@ -32,9 +32,10 @@ end
 
 # augment *A* by adding one more row and column for a lagrange multiplier
 function augment_lm(A::Array)
-    A = vcat(A, ones(eltype(A), 1, size(A,2)))
-    A = hcat(A, ones(eltype(A), size(A,1), 1))
-    A[end, end] = 0.0
-    return A
+    n, m = size(A)
+    Am = ones(n+1, n+1)
+    Am[1:n,1:n] = A
+    Am[n+1,n+1] = 0.0
+    return Am
 end
 

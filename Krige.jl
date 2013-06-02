@@ -9,14 +9,16 @@
 
 module Krige
 
-    using Optim
-    
     export GaussianVariogram, SphericalVariogram, LogVariogram, LinearVariogram,
-           NuggetVariogram, CompositeVariogram, Variogram_like,
+           ExponentialVariogram, NuggetVariogram,
+           CompositeVariogram,
+           Variogram_like,
            est_variogram,
            evaluate,
            fit!,
            ordinary_krig
+    
+    using Optim
     
     include("src/util.jl")
     include("src/vario.jl")
